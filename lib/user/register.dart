@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:life_mate_flutter/api/userApi.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -41,6 +43,42 @@ class _RegisterPageState extends State<RegisterPage> {
             ElevatedButton(
               onPressed: () {
                 // 注册逻辑
+                final username = _usernameController.text;
+                final password = _passwordController.text;
+                final confirm = _confirmController.text;
+                if (username.isEmpty || password.isEmpty || confirm.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('请填写所有字段')),
+                  );
+                  return;
+                }
+                if (password != confirm) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('密码不匹配')),
+                  );
+                  return;
+                }
+                final userApi = UserApi();
+                userApi.register({
+                  'username': username,
+                  'passwordHash': password,
+                }).then((result) {
+                  if (result) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('注册成功')),
+                    );
+                    context.push('/loginForm');
+
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(result ? '注册成功' : '注册失败')),
+                    );
+                  }
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('注册失败: $error')),
+                  );
+                });
               },
               child: const Text('注册'),
             ),

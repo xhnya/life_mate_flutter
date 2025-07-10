@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'register.dart';
+import 'package:go_router/go_router.dart';
+import 'package:life_mate_flutter/api/userApi.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,16 +38,30 @@ class _LoginPageState extends State<LoginPage> {
             ElevatedButton(
               onPressed: () {
                 // 登录逻辑
+                UserApi().login({
+                  'username': _usernameController.text,
+                  'password': _passwordController.text,
+                }).then((token) {
+                  if (token.isNotEmpty) {
+                    //把token 保存到SharedPreferences
+                    final prefs = SharedPreferences.getInstance();
+                    prefs.then((sharedPrefs) {
+                      sharedPrefs.setString('token', token);
+                    });
+                    context.go('/home');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('登录失败，请检查用户名和密码')),
+                    );
+                  }
+                });
               },
               child: const Text('登录'),
             ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterPage()),
-                );
+                context.push('/register');
               },
               child: const Text('没有账号？去注册'),
             ),
